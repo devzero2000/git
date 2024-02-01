@@ -227,6 +227,14 @@ struct rev_info {
 			 */
 			do_not_die_on_missing_objects:1,
 
+			/*
+			 * When the do_not_die_on_missing_objects flag above is set,
+			 * a rev walk could still die with "fatal: bad object <oid>"
+			 * if one of the tips it is passed is missing. With this flag
+			 * such a tip will be reported as missing too.
+			 */
+			 do_not_die_on_missing_tips:1,
+
 			/* for internal use only */
 			exclude_promisor_objects:1;
 

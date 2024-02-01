@@ -46,7 +46,7 @@ do
 			git rev-list --objects --no-object-names \
 				HEAD ^$obj >expect.raw &&
 
-			# Blobs are shared by all commits, so evethough a commit/tree
+			# Blobs are shared by all commits, so even though a commit/tree
 			# might be skipped, its blob must be accounted for.
 			if [ $obj != "HEAD:1.t" ]; then
 				echo $(git rev-parse HEAD:1.t) >>expect.raw &&

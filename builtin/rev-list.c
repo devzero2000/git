@@ -562,6 +562,16 @@ int cmd_rev_list(int argc, const char **argv, const char *prefix)
 				break;
 		}
 	}
+	for (i = 1; i < argc; i++) {
+		const char *arg = argv[i];
+		if (!strcmp(arg, "--allow-missing-tips")) {
+			if (arg_missing_action == MA_ERROR)
+				die(_("option '%s' only makes sense with '%s' set to '%s' or '%s'"),
+				      "--allow-missing-tips", "--missing=", "allow-*", "print");
+			revs.do_not_die_on_missing_tips = 1;
+			break;
+		}
+	}
 
 	if (arg_missing_action)
 		revs.do_not_die_on_missing_objects = 1;
@@ -626,6 +636,8 @@ int cmd_rev_list(int argc, const char **argv, const char *prefix)
 		if (!strcmp(arg, "--exclude-promisor-objects"))
 			continue; /* already handled above */
 		if (skip_prefix(arg, "--missing=", &arg))
+			continue; /* already handled above */
+		if (!strcmp(arg, "--allow-missing-tips"))
 			continue; /* already handled above */
 
 		if (!strcmp(arg, ("--no-object-names"))) {
@@ -753,8 +765,18 @@ int cmd_rev_list(int argc, const char **argv, const char *prefix)
 
 	if (arg_print_omitted)
 		oidset_init(&omitted_objects, DEFAULT_OIDSET_SIZE);
-	if (arg_missing_action == MA_PRINT)
+	if (arg_missing_action == MA_PRINT) {
+		struct oidset_iter iter;
+		struct object_id *oid;
+
 		oidset_init(&missing_objects, DEFAULT_OIDSET_SIZE);
+
+		/* Already add missing commits */
+		oidset_iter_init(&revs.missing_commits, &iter);
+		while ((oid = oidset_iter_next(&iter)))
+			oidset_insert(&missing_objects, oid);
+		oidset_clear(&revs.missing_commits);
+	}
 
 	traverse_commit_list_filtered(
 		&revs, show_commit, show_object, &info,
